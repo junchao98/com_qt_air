@@ -254,12 +254,30 @@ void MainWindow::readMyCom()
 
                     ui->label_rain->setText("data_error");
 
-                }
+                }else{
                re_data = QString(ch_data+47+4);
                 sensor_data.rain =re_data;
                ui->label_rain->setText(re_data);
 
                sensor_data.nova=1;
+                }
+            }
+
+            if(QString(ch_data+12) == "YTPS"){      //气压
+
+                     qDebug()<<"气压";
+
+                if(QString(ch_data+69) == "2"){
+
+                    ui->label_press->setText("data_error");
+
+                }else{
+               re_data = QString(ch_data+47+4);
+                sensor_data.press =re_data;
+               ui->label_press->setText(re_data);
+
+               sensor_data.nova=1;
+                }
             }
 
 
@@ -279,7 +297,6 @@ void MainWindow::readMyCom()
                 re_data = QString(ch_data+59);   //风速度
                 sensor_data.win =re_data;
                 ui->label_win->setText(re_data);
-
 
                 sensor_data.nova=1;
 
