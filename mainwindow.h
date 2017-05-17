@@ -53,6 +53,9 @@ private:
        QString  sun;
        QString  press;
        QString rain;
+       QString win_v;
+       QString win;
+
        bool nova;
 
    };

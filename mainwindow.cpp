@@ -19,7 +19,7 @@
 
 
 
-#define DATA_LEN 225
+#define DATA_LEN 520
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -159,19 +159,30 @@ void MainWindow::readMyCom()
 
   // QByteArray _ch_data;
   char ch_data[DATA_LEN+1]={0};
-  char ch_tem[7]={0};
+
 
    my_serialPort->readLine(ch_data,DATA_LEN);
 
+   if(strlen(ch_data)>20){
+
    re_data=QString(QLatin1String(ch_data));
+
    ui->textBrowser_old->append(re_data);
 
+   }else{goto LESSDATA;}
 
-   int t=0;
+
    for(int i=0;i<DATA_LEN;i++)
    {
-    if(ch_data[i]=='B'&&ch_data[i+1]=='G'&&ch_data[i+94]=='E'&&ch_data[i+95]=='D'){
+    if(ch_data[i]=='B'&&ch_data[i+1]=='G'){
 
+        for(int j=20;j<101;j++)
+        {
+           if(ch_data[i+j]=='E'&&ch_data[i+j+1]=='D')break;
+
+           if(j==100)goto BADDATA;
+
+        }
         for(int j=0;j<94;j++){
             if(ch_data[j] == ',')ch_data[j]='\0';
         }
@@ -193,7 +204,11 @@ void MainWindow::readMyCom()
 
         if(ui->comboBox__num->currentText() ==  QString(ch_data+3)){     //节点
 
+
+
             if(QString(ch_data+12) == "YTHM"){     //温湿度
+
+                 qDebug()<<"温湿度";
              re_data = QString(ch_data+60);
              sensor_data.humi=re_data;
              ui->label_humi->setText(re_data);
@@ -217,26 +232,59 @@ void MainWindow::readMyCom()
 
             if(QString(ch_data+12) == "YTMP"){      //温度
 
+                qDebug()<<"温度";
+                if(QString(ch_data+73) =="2" ){
 
-             re_data = QString(ch_data+47+4);
-             sensor_data.temp =re_data;
-             ui->label_temp->setText(re_data);
+                    ui->label_temp->setText("data_error");
+                }else{
+                re_data = QString(ch_data+47+4);
+                sensor_data.temp =re_data;
+                ui->label_temp->setText(re_data);
 
-             sensor_data.nova=1;
+                sensor_data.nova=1;
+
+                }
             }
 
 
             if(QString(ch_data+12) == "YTBR"){      //雨量
 
+                     qDebug()<<"雨量";
+                if(QString(ch_data+68) == "2"){
 
-             re_data = QString(ch_data+47+4);
-             sensor_data.rain =re_data;
-             ui->label_temp->setText(re_data);
+                    ui->label_rain->setText("data_error");
 
-             sensor_data.nova=1;
+                }
+               re_data = QString(ch_data+47+4);
+                sensor_data.rain =re_data;
+               ui->label_rain->setText(re_data);
+
+               sensor_data.nova=1;
             }
 
 
+            if(QString(ch_data+12) == "YWPD"){      //风速向
+
+                 qDebug()<<"风速向";
+                if(QString(ch_data+73) =="####" ){ //待定
+
+                    ui->label_win_v_2->setText("data_error");
+                }else{
+
+                re_data = QString(ch_data+47+4);    //风向
+                sensor_data.win_v =re_data;
+                ui->label_win_v_2->setText(re_data);
+
+
+                re_data = QString(ch_data+59);   //风速度
+                sensor_data.win =re_data;
+                ui->label_win->setText(re_data);
+
+
+                sensor_data.nova=1;
+
+                }
+            }
 
 
          }
@@ -250,12 +298,19 @@ void MainWindow::readMyCom()
 
 
 
+
    }
 
 
     //
+    return;
 
+ BADDATA:
+    qDebug()<<"bad data";
+   return;
 
+ LESSDATA:
+   return;
 
 
 }
