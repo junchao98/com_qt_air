@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include<QPaintEvent> //用于绘画事件
 
 #include <QSqlDatabase>
 #include <QStringList>
@@ -32,10 +32,14 @@ private slots:
      void readMyCom();
      void on_pushButton_close_clicked();
      void data_kill();
+    void paintEvent(QPaintEvent *);
+
 
      void on_pushButton_wdata_clicked();
 
      void on_pushButton_2_clicked();
+
+     void on_pushButton_3_clicked();
 
 private:
 
@@ -47,6 +51,8 @@ private:
    QByteArray requestData;//（用于存储从串口那读取的数据）
    bool open_flag=1;
 
+   QImage image;
+
    struct _sensor_data{
        QString  temp;
        QString  humi;
@@ -55,11 +61,11 @@ private:
        QString rain;
        QString win_v;
        QString win;
-
        bool nova;
 
    };
     _sensor_data sensor_data;
+
      QSqlDatabase db;
 
      bool db_checke;
