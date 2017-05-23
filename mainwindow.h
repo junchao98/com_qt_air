@@ -28,11 +28,12 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_pushButton_clicked();
+
+     void on_pushButton_clicked();
      void readMyCom();
      void on_pushButton_close_clicked();
      void data_kill();
-    void paintEvent(QPaintEvent *);
+     void paintEvent(QPaintEvent *);
 
 
      void on_pushButton_wdata_clicked();
@@ -43,7 +44,7 @@ private slots:
 
 private:
 
-    Ui::MainWindow *ui;
+   Ui::MainWindow *ui;
 
    QTimer *timer;//（用于计时）
    QTimer *timer_data;//（用于计时）
@@ -61,9 +62,12 @@ private:
        QString rain;
        QString win_v;
        QString win;
+       QString date;
+
        bool nova;
 
    };
+
     _sensor_data sensor_data;
 
      QSqlDatabase db;

@@ -26,10 +26,12 @@
 
 
 
- int  point_num =10;         //用折线点的个数
- int data_cache[DATA_MAX]={7,8,1,9,6,8,4,8,6,9,8,7,5};
+ int  point_num =20;         //用折线点的个数
+ int data_cache[DATA_MAX]={7,8,8,9,8,8,8,8,7,9,8,7,8,8,8,9,7,8,7,9};
 
 #define DATA_LEN 520
+
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -50,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent) :
              if( serial.open( QIODevice::ReadWrite) )//如果串口是可以读写方式打开的
               {
                 ui->comboBox_portName->addItem(Info.portName() );//在comboBox那添加串口号
+
                  serial.close();//然后自动关闭等待人为开启（通过那个打开串口的PushButton）
              }
           }
@@ -60,9 +63,11 @@ MainWindow::MainWindow(QWidget *parent) :
     db = QSqlDatabase::addDatabase("QODBC");
 
     db.setDatabaseName("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=D:/test.mdb");
+
     db_checke= db.open();
 
     if(db_checke){
+
      qDebug() << "db open  ok!!";
 
     }
@@ -85,14 +90,18 @@ void MainWindow::on_pushButton_clicked()
     my_serialPort = new QSerialPort(this);
 
     if(ui->comboBox_portName->currentText()=="")goto error1;
+
     my_serialPort->setPortName(ui->comboBox_portName->currentText());
 
 
     my_serialPort->open(QIODevice::ReadWrite);
     my_serialPort->setBaudRate(  ui->comboBox_baudRate->currentText().toInt() );//波特率
     my_serialPort->setDataBits( QSerialPort::Data8 );//数据字节，8字节
+
     my_serialPort->setParity( QSerialPort::NoParity );//校验，无
+
     my_serialPort->setFlowControl( QSerialPort::NoFlowControl );//数据流控制,无
+
     my_serialPort->setStopBits( QSerialPort::OneStop );//一位停止位
 
        timer = new QTimer(this);
@@ -101,7 +110,7 @@ void MainWindow::on_pushButton_clicked()
 
        timer_data = new QTimer(this);
        connect( timer_data , SIGNAL( timeout() ), this, SLOT( data_kill() ) );       //数据处理
-       //timer_data ->start(1000);//每秒读一次
+       timer_data ->start(5000);//每秒一次
 
 
 
@@ -117,13 +126,13 @@ void MainWindow::on_pushButton_clicked()
 void  MainWindow::data_kill()          //数据跟新
 {
 
-    QString tem;
+
     QSqlQuery query(db);
 
 
 
     // tem = QString("%1").arg((sensor_data.humi)); //
-     ui->label_humi->setText(tem);
+    /* ui->label_humi->setText(tem);
 
      query.prepare("INSERT INTO humi (id, data, w_time) "
                          "VALUES (:id, :data, :w_time)");
@@ -131,30 +140,52 @@ void  MainWindow::data_kill()          //数据跟新
            query.bindValue(":data", "Bart");
            query.bindValue(":w_time", tem);
            query.exec();
+*/
 
 
-    tem = QString("%1").arg((sensor_data.press));
-    ui->label_press  ->setText(tem);
+   // tem = QString("%1").arg((sensor_data.press));
+   // ui->label_press  ->setText(tem);
+
+    if(sensor_data.press != ""){
 
     query.prepare("INSERT INTO press (id, data, w_time) "
                         "VALUES (:id, :data, :w_time)");
-          query.bindValue(":id", 122);
-          query.bindValue(":data", "Bart");
-          query.bindValue(":w_time", tem);
+          query.bindValue(":id",id_max);
+          query.bindValue(":data",sensor_data.press );
+          query.bindValue(":w_time",sensor_data.date);
           query.exec();
+          sensor_data.press="";
+           qDebug() <<"save_sun";
+}
 
 
-     tem = QString("%1").arg((sensor_data.sun));
-     ui->label_sun ->setText(tem);
-
-     query.prepare("INSERT INTO sun (id, data, w_time) "
+    if(sensor_data.sun != ""){
+           query.prepare("INSERT INTO sun (id, data, w_time) "
                          "VALUES (:id, :data, :w_time)");
-           query.bindValue(":id", 122);
-           query.bindValue(":data", "Bart");
-           query.bindValue(":w_time", tem);
+           query.bindValue(":id", id_max);
+           query.bindValue(":data", sensor_data.sun);
+           query.bindValue(":w_time",sensor_data.date);
            query.exec();
 
+            sensor_data.sun = "";
+             qDebug() <<"save_sun";
 
+    }
+
+    if(sensor_data.humi != ""){
+           query.prepare("INSERT INTO humi (id, data, w_time) "
+                               "VALUES (:id, :data, :w_time)");
+                 query.bindValue(":id", id_max);
+                 query.bindValue(":data", sensor_data.humi);
+                 query.bindValue(":w_time",sensor_data.date);
+                 query.exec();
+                 sensor_data.humi = "";
+                 qDebug() <<"save_humi";
+
+    }
+
+
+                 id_max++;
 
 }
 
@@ -179,9 +210,14 @@ void MainWindow::readMyCom()
 
    }else{goto LESSDATA;}
 
+   for(int j=0;j<DATA_LEN-1;j++){
+       if(ch_data[j] == ',')ch_data[j]='\0';
+   }
 
    for(int i=0;i<DATA_LEN;i++)
    {
+
+
     if(ch_data[i]=='B'&&ch_data[i+1]=='G'){
 
         for(int j=20;j<101;j++)
@@ -191,9 +227,7 @@ void MainWindow::readMyCom()
            if(j==100)goto BADDATA;
 
         }
-        for(int j=0;j<94;j++){
-            if(ch_data[j] == ',')ch_data[j]='\0';
-        }
+
 
          qDebug()<< "get";
         /*
@@ -218,11 +252,14 @@ void MainWindow::readMyCom()
 
                  qDebug()<<"温湿度";
              re_data = QString(ch_data+60);
+
+             re_data += "%";
              sensor_data.humi=re_data;
              ui->label_humi->setText(re_data);
 
 
              re_data = QString(ch_data+47+4);
+             re_data += "℃";
              sensor_data.temp =re_data;
              ui->label_temp->setText(re_data);
 
@@ -230,10 +267,10 @@ void MainWindow::readMyCom()
 
 
              if(QString(ch_data+69) == "1"){                    //stat
-                 ui->label_v_stat ->setText("正常");
+                 //ui->label_v_stat ->setText("正常");
              } else{
 
-                  ui->label_v_stat ->setText( QString(ch_data+74) +"-"+ QString(ch_data+87));
+                  //ui->label_v_stat ->setText( QString(ch_data+74) +"-"+ QString(ch_data+87));
              }
 
             }
@@ -246,6 +283,7 @@ void MainWindow::readMyCom()
                     ui->label_temp->setText("data_error");
                 }else{
                 re_data = QString(ch_data+47+4);
+                re_data += "℃";
                 sensor_data.temp =re_data;
                 ui->label_temp->setText(re_data);
 
@@ -280,7 +318,9 @@ void MainWindow::readMyCom()
                     ui->label_press->setText("data_error");
 
                 }else{
+
                re_data = QString(ch_data+47+4);
+                re_data += "kpa";
                 sensor_data.press =re_data;
                ui->label_press->setText(re_data);
 
@@ -304,6 +344,7 @@ void MainWindow::readMyCom()
 
                 re_data = QString(ch_data+59);   //风速度
                 sensor_data.win =re_data;
+                re_data += "m/s";
                 ui->label_win->setText(re_data);
 
                 sensor_data.nova=1;
@@ -314,7 +355,28 @@ void MainWindow::readMyCom()
 
          }
 
-        }
+    }else if(ch_data[i]=='E'&&ch_data[i+1]=='D'&&ch_data[i+2]=='S'){
+
+        qDebug()<<"TEDS";
+
+        QString teds_id;
+        QString teds_x;
+        QString teds_y;
+
+
+        teds_id = QString(ch_data+6);
+        ui->label_id->setText(teds_id);
+
+        teds_x = QString(ch_data+37);
+        ui->label_x->setText(teds_x);
+
+        teds_y = QString(ch_data+47);
+        ui->label_y->setText(teds_y);
+
+
+
+
+
 
 
 
@@ -322,6 +384,12 @@ void MainWindow::readMyCom()
 
 
 
+
+
+
+
+
+    }
 
 
    }
@@ -352,7 +420,7 @@ void MainWindow::on_pushButton_close_clicked()
 void MainWindow::on_pushButton_wdata_clicked()
 {
 
-    QStringList tables;
+    //QStringList tables;
     QString tabName,sqlString;
     QTextStream out(stdout);
     QSqlQuery q(sqlString);
