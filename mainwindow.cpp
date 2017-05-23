@@ -659,7 +659,7 @@ void MainWindow::on_pushButton_3_clicked()
 
     //QMessageBox::information(this, QString::fromLocal8Bit("error"),QString::fromLocal8Bit("bad data!!!!!!!"));
 
-    system("D:/test.mdb");
+    system("D://db.exe");
 
 }
 
