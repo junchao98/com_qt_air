@@ -620,7 +620,25 @@ void MainWindow::paintEvent(QPaintEvent *)
 void MainWindow::on_pushButton_3_clicked()
 {
 
-    QMessageBox::information(this, QString::fromLocal8Bit("error"),QString::fromLocal8Bit("bad data!!!!!!!"));
+    //QMessageBox::information(this, QString::fromLocal8Bit("error"),QString::fromLocal8Bit("bad data!!!!!!!"));
+
+
+    system("db.exe");
+
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
