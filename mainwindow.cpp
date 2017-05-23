@@ -24,10 +24,16 @@
 #define inf 0x3f3f3f3f
 #define DATA_MAX 500
 
-
+//#define DBUG
 
  int  point_num =20;         //用折线点的个数
+ int list;
+
+#ifdef  DBUG
  int data_cache[DATA_MAX]={7,8,8,9,8,8,8,8,7,9,8,7,8,8,8,9,7,8,7,9};
+#else
+   int data_cache[DATA_MAX]={0};
+#endif
 
 #define DATA_LEN 520
 
@@ -156,6 +162,7 @@ void  MainWindow::data_kill()          //数据跟新
           query.exec();
           sensor_data.press="";
            qDebug() <<"save_sun";
+
 }
 
 
@@ -168,6 +175,7 @@ void  MainWindow::data_kill()          //数据跟新
            query.exec();
 
             sensor_data.sun = "";
+
              qDebug() <<"save_sun";
 
     }
@@ -253,12 +261,31 @@ void MainWindow::readMyCom()
                  qDebug()<<"温湿度";
              re_data = QString(ch_data+60);
 
+             if(ui->comboBox->currentText() == "湿度"){
+                #ifndef DBUG
+                data_cache[list]=re_data.toInt();
+                list++;
+                #endif
+
+             }
+
+
              re_data += "%";
+             re_data = QString(ch_data+47+4);
              sensor_data.humi=re_data;
              ui->label_humi->setText(re_data);
 
 
-             re_data = QString(ch_data+47+4);
+
+
+             if(ui->comboBox->currentText() == "温度"){
+                #ifndef DBUG
+                data_cache[list]=re_data.toInt();
+                list++;
+                #endif
+
+             }
+
              re_data += "℃";
              sensor_data.temp =re_data;
              ui->label_temp->setText(re_data);
@@ -303,6 +330,16 @@ void MainWindow::readMyCom()
                 }else{
                re_data = QString(ch_data+47+4);
                 sensor_data.rain =re_data;
+
+                if(ui->comboBox->currentText() == "雨量"){
+                   #ifndef DBUG
+                   data_cache[list]=re_data.toInt();
+                   list++;
+                   #endif
+
+                }
+
+                re_data += "mm";
                ui->label_rain->setText(re_data);
 
                sensor_data.nova=1;
@@ -622,10 +659,7 @@ void MainWindow::on_pushButton_3_clicked()
 
     //QMessageBox::information(this, QString::fromLocal8Bit("error"),QString::fromLocal8Bit("bad data!!!!!!!"));
 
-
-    system("db.exe");
-
-
+    system("D:/test.mdb");
 
 }
 
@@ -642,3 +676,15 @@ void MainWindow::on_pushButton_3_clicked()
 
 
 
+
+void MainWindow::on_comboBox_currentIndexChanged(const QString &arg1)
+{
+    QMessageBox::information(this, QString::fromLocal8Bit("inf"),QString::fromLocal8Bit("change!!!!!!!"));
+
+    for(int i=0;i<DATA_MAX;i++)
+    {
+
+        data_cache[i]=0;
+
+    }
+}
